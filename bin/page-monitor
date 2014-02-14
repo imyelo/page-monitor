@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+
+var program = require('commander');
+var path = require('path');
+var config = {};
+
+program
+  .option('-d --diff ', 'check the diff between the screenshot')
+  .option('-s --size [type]', '"all", "mobile", "test" or value like "320x480"', "mobile")
+  .option('-t --task [file]', 'select tasks file')
+  .option('-o --output [path]', 'output path for saving the screenshot files', "./output")
+  .parse(process.argv);
+
+if (program.diff) {
+  return require('../lib/diff')();
+} else {
+  if (program.size) {
+    config.size = program.size;
+  }
+  if (program.task) {
+    var tasks = {};
+    try {
+      tasks = require(path.join(process.cwd(), program.task));
+    } catch (ex) {
+      console.error('cannot find the tasks file');
+      process.exit(1);
+    }
+    config.tasks = tasks;
+  } else {
+    console.error('tasks file required');
+    process.exit(1);
+  }
+  if (program.output) {
+    config.output = path.join(process.cwd(), program.output);
+  }
+  global['CONFIG'] = config;
+  require('../lib')();
+}
